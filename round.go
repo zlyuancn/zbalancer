@@ -23,22 +23,22 @@ func newRoundBalancer() Balancer {
 	return new(roundBalancer)
 }
 
-func (b *roundBalancer) Update(ins []interface{}, opt ...Option) {
+func (b *roundBalancer) Update(ins []interface{}, opt ...UpdateOption) {
 	b.mx.Lock()
 	b.ins = ins
 	b.mx.Unlock()
 }
 
-func (b *roundBalancer) Get() interface{} {
+func (b *roundBalancer) Get(opt ...Option) (interface{}, error) {
 	b.mx.RLock()
 	defer b.mx.RUnlock()
 
 	l := len(b.ins)
 	if l == 0 {
-		return nil
+		return nil, NoInstanceErr
 	}
 	if l == 1 {
-		return b.ins[0]
+		return b.ins[0], nil
 	}
 
 	count := atomic.AddUint32(&b.count, 1) - 1
@@ -49,5 +49,5 @@ func (b *roundBalancer) Get() interface{} {
 		index = int(count) % l
 	}
 
-	return b.ins[index]
+	return b.ins[index], nil
 }

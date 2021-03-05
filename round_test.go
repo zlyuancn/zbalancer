@@ -28,7 +28,7 @@ func Test_roundBalancer_Get(t *testing.T) {
 	b.Update(test.ins)
 
 	for i := 0; i < test.count; i++ {
-		if got := b.Get(); !reflect.DeepEqual(got, test.want[i]) {
+		if got, _ := b.Get(); !reflect.DeepEqual(got, test.want[i]) {
 			t.Errorf("Get() = %v, want %v", got, test.want[i])
 		}
 	}
@@ -54,7 +54,7 @@ func Test_roundBalancer_Upset(t *testing.T) {
 	b.Update(test.ins)
 
 	for i := 0; i < test.count; i++ {
-		if got := b.Get(); !reflect.DeepEqual(got, test.want[i]) {
+		if got, _ := b.Get(); !reflect.DeepEqual(got, test.want[i]) {
 			t.Errorf("Get() = %v, want %v", got, test.want[i])
 		}
 	}
@@ -66,7 +66,7 @@ func BenchmarkRoundBalancer_Get(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = balancer.Get()
+		_, _ = balancer.Get()
 	}
 }
 
@@ -77,7 +77,7 @@ func BenchmarkRoundBalancer_GetConcurrence(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_ = balancer.Get()
+			_, _ = balancer.Get()
 		}
 	})
 }

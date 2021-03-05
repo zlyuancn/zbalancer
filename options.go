@@ -8,18 +8,18 @@
 
 package zbalancer
 
-type options struct {
+type updateOptions struct {
 	Weights []uint8 // 权重, 权重值区间为0~255, 0表示永不使用
 }
 
-type Option func(opts *options)
+type UpdateOption func(opts *updateOptions)
 
-func newOptions() *options {
-	return &options{}
+func newUpdateOptions() *updateOptions {
+	return &updateOptions{}
 }
 
 // 构建默认权重, 默认值为1
-func (opts *options) makeDefaultWeight(count int, def ...uint8) {
+func (opts *updateOptions) makeDefaultWeight(count int, def ...uint8) {
 	opts.Weights = make([]uint8, count)
 	for i := 0; i < count; i++ {
 		if i < len(def) {
@@ -37,8 +37,17 @@ func (opts *options) makeDefaultWeight(count int, def ...uint8) {
 //
 // 仅以下平衡器生效:
 //      WeightRandom
-func WithWeights(weights []uint8) Option {
-	return func(opts *options) {
+func WithUpdateWeights(weights []uint8) UpdateOption {
+	return func(opts *updateOptions) {
 		opts.Weights = weights
 	}
+}
+
+type options struct {
+}
+
+type Option func(opts *options)
+
+func newOptions() *options {
+	return &options{}
 }

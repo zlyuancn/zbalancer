@@ -37,13 +37,13 @@ func Test_weightRandomBalancer_Get(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			b, _ := NewBalancer(WeightRandomBalancer)
-			b.Update(test.ins, WithWeights(test.weights))
+			b.Update(test.ins, WithUpdateWeights(test.weights))
 
 			const count = 10000000
 			result := make(map[string]int)
 			for i := 0; i < count; i++ {
-				in := b.Get().(string)
-				result[in]++
+				in, _ := b.Get()
+				result[in.(string)]++
 			}
 			t.Log(result)
 
@@ -53,7 +53,7 @@ func Test_weightRandomBalancer_Get(t *testing.T) {
 				realP := float64(result[test.ins[i].(string)]) / float64(count)
 				errP := math.Abs((realP - wantP) / wantP)
 				t.Logf("The probability of %v is %.5f, and the error is %.5f", name, realP, errP)
-				if errP > 0.01 {
+				if errP >= 0.01 {
 					t.Errorf("%v has a margin of error of more than 0.01", name)
 				}
 			}
@@ -63,22 +63,22 @@ func Test_weightRandomBalancer_Get(t *testing.T) {
 
 func BenchmarkWeightRandomBalancer_Get(b *testing.B) {
 	balancer, _ := NewBalancer(WeightRandomBalancer)
-	balancer.Update([]interface{}{1, 2, 3, 4, 5}, WithWeights([]uint8{3, 5, 4, 6, 2}))
+	balancer.Update([]interface{}{1, 2, 3, 4, 5}, WithUpdateWeights([]uint8{3, 5, 4, 6, 2}))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = balancer.Get()
+		_, _ = balancer.Get()
 	}
 }
 
 func BenchmarkWeightRandomBalancer_GetConcurrence(b *testing.B) {
 	balancer, _ := NewBalancer(WeightRandomBalancer)
-	balancer.Update([]interface{}{1, 2, 3, 4, 5}, WithWeights([]uint8{3, 5, 4, 6, 2}))
+	balancer.Update([]interface{}{1, 2, 3, 4, 5}, WithUpdateWeights([]uint8{3, 5, 4, 6, 2}))
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_ = balancer.Get()
+			_, _ = balancer.Get()
 		}
 	})
 }

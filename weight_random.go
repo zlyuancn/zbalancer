@@ -31,11 +31,11 @@ func newWeightRandomBalancer() Balancer {
 	}
 }
 
-func (b *weightRandomBalancer) Update(ins []interface{}, opt ...Option) {
+func (b *weightRandomBalancer) Update(ins []interface{}, opt ...UpdateOption) {
 	b.mx.Lock()
 	defer b.mx.Unlock()
 
-	opts := newOptions()
+	opts := newUpdateOptions()
 	for _, o := range opt {
 		o(opts)
 	}
@@ -64,16 +64,16 @@ func (b *weightRandomBalancer) search(score int32) int {
 	return sort.Search(len(b.scores), func(i int) bool { return b.scores[i] > score })
 }
 
-func (b *weightRandomBalancer) Get() interface{} {
+func (b *weightRandomBalancer) Get(opt ...Option) (interface{}, error) {
 	b.mx.Lock()
 	defer b.mx.Unlock()
 
 	l := len(b.ins)
 	if l == 0 {
-		return nil
+		return nil, NoInstanceErr
 	}
 	if l == 1 {
-		return b.ins[0]
+		return b.ins[0], nil
 	}
 
 	score := b.random.Int31n(b.allWeight)
@@ -81,5 +81,5 @@ func (b *weightRandomBalancer) Get() interface{} {
 	if index == len(b.ins) { // 环尾
 		index = len(b.ins) - 1
 	}
-	return b.ins[index]
+	return b.ins[index], nil
 }
