@@ -83,7 +83,7 @@ func (b *weightHashBalancer) Get(opt ...Option) (Instance, error) {
 	}
 
 	index := b.search(score)
-	if index == l { // 环尾
+	if index == l { // 环尾, 虽然在这里不可能出现
 		index = l - 1
 	}
 	return b.ins[index], nil
