@@ -17,7 +17,7 @@ import (
 type weightHashBalancer struct {
 	allWeight uint32
 	ins       []interface{}
-	scores    []uint32
+	ends      []uint32 //  实例在线段的结束位置列表
 	hashFn    HashFn
 	mx        sync.RWMutex
 }
@@ -42,20 +42,20 @@ func (b *weightHashBalancer) Update(ins []interface{}, opt ...UpdateOption) {
 	b.hashFn = opts.HashFn
 	b.allWeight = 0
 	b.ins = make([]interface{}, 0, len(ins))
-	b.scores = make([]uint32, 0, len(ins))
+	b.ends = make([]uint32, 0, len(ins))
 	for i, in := range ins {
-		if opts.Weights[i] == 0 {
+		if opts.Weights[i] == 0 { // 权重为0忽略
 			continue
 		}
-		b.ins = append(b.ins, in)
-		b.allWeight += uint32(opts.Weights[i])   // 这个值是记录所有权重的累加
-		b.scores = append(b.scores, b.allWeight) // 每一个实例放在上一个实例的后面
+		b.allWeight += uint32(opts.Weights[i]) // 累加权重
+		b.ins = append(b.ins, in)              // 每一个实例放在上一个实例的后面
+		b.ends = append(b.ends, b.allWeight)   // 添加这个实例在线段的结束位置
 	}
 }
 
 // 二分搜索
 func (b *weightHashBalancer) search(score uint32) int {
-	return sort.Search(len(b.scores), func(i int) bool { return b.scores[i] > score })
+	return sort.Search(len(b.ends), func(i int) bool { return b.ends[i] > score })
 }
 
 func (b *weightHashBalancer) Get(opt ...Option) (interface{}, error) {
