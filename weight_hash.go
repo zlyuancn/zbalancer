@@ -9,47 +9,47 @@
 package zbalancer
 
 import (
-	"errors"
 	"sort"
 	"sync"
 )
 
 type weightHashBalancer struct {
 	allWeight uint32
-	ins       []interface{}
+	ins       []Instance
 	ends      []uint32 //  实例在线段的结束位置列表
 	hashFn    HashFn
 	mx        sync.RWMutex
 }
 
 func newWeightHashBalancer() Balancer {
-	return new(weightHashBalancer)
+	return &weightHashBalancer{
+		hashFn: DefaultHashFn,
+	}
 }
 
-func (b *weightHashBalancer) Update(ins []interface{}, opt ...UpdateOption) {
+func (b *weightHashBalancer) Apply(opt ...BalancerOption) {
+	opts := newBalancerOptions()
+	opts.Apply(opt...)
+
+	b.mx.Lock()
+	b.hashFn = opts.HashFn
+	b.mx.Unlock()
+}
+
+func (b *weightHashBalancer) Update(ins ...Instance) {
 	b.mx.Lock()
 	defer b.mx.Unlock()
 
-	opts := newUpdateOptions()
-	opts.Apply(opt...)
-	if len(opts.Weights) == 0 {
-		opts.MakeDefaultWeight(len(ins))
-	}
-	if len(opts.Weights) != len(ins) {
-		panic(errors.New("number of weights is inconsistent with the number of instances"))
-	}
-
-	b.hashFn = opts.HashFn
 	b.allWeight = 0
-	b.ins = make([]interface{}, 0, len(ins))
+	b.ins = make([]Instance, 0, len(ins))
 	b.ends = make([]uint32, 0, len(ins))
-	for i, in := range ins {
-		if opts.Weights[i] == 0 { // 权重为0忽略
+	for _, in := range ins {
+		if in.Weight() == 0 { // 权重为0忽略
 			continue
 		}
-		b.allWeight += uint32(opts.Weights[i]) // 累加权重
-		b.ins = append(b.ins, in)              // 每一个实例放在上一个实例的后面
-		b.ends = append(b.ends, b.allWeight)   // 添加这个实例在线段的结束位置
+		b.allWeight += uint32(in.Weight())   // 累加权重
+		b.ins = append(b.ins, in)            // 每一个实例放在上一个实例的后面
+		b.ends = append(b.ends, b.allWeight) // 添加这个实例在线段的结束位置
 	}
 }
 
@@ -58,7 +58,7 @@ func (b *weightHashBalancer) search(score uint32) int {
 	return sort.Search(len(b.ends), func(i int) bool { return b.ends[i] > score })
 }
 
-func (b *weightHashBalancer) Get(opt ...Option) (interface{}, error) {
+func (b *weightHashBalancer) Get(opt ...Option) (Instance, error) {
 	b.mx.RLock()
 	defer b.mx.RUnlock()
 

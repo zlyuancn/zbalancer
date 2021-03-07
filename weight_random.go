@@ -9,7 +9,6 @@
 package zbalancer
 
 import (
-	"errors"
 	"math/rand"
 	"sort"
 	"sync"
@@ -23,7 +22,7 @@ const (
 )
 
 type weightRandomBalancer struct {
-	ins []interface{}
+	ins []Instance
 	mx  sync.RWMutex
 
 	count      uint32
@@ -34,31 +33,23 @@ func newWeightRandomBalancer() Balancer {
 	return new(weightRandomBalancer)
 }
 
-func (b *weightRandomBalancer) Update(ins []interface{}, opt ...UpdateOption) {
+func (b *weightRandomBalancer) Apply(opt ...BalancerOption) {}
+
+func (b *weightRandomBalancer) Update(ins ...Instance) {
 	b.mx.Lock()
 	defer b.mx.Unlock()
 
-	// 选项
-	opts := newUpdateOptions()
-	opts.Apply(opt...)
-	if len(opts.Weights) == 0 {
-		opts.MakeDefaultWeight(len(ins))
-	}
-	if len(opts.Weights) != len(ins) {
-		panic(errors.New("number of weights is inconsistent with the number of instances"))
-	}
-
 	// 计算权重
 	var allWeight uint32
-	b.ins = make([]interface{}, 0, len(ins))
+	b.ins = make([]Instance, 0, len(ins))
 	ends := make([]uint32, 0, len(ins)) // 实例在线段的结束位置列表
-	for i, in := range ins {
-		if opts.Weights[i] == 0 { // 权重为0忽略
+	for _, in := range ins {
+		if in.Weight() == 0 { // 权重为0忽略
 			continue
 		}
-		allWeight += uint32(opts.Weights[i]) // 累加权重
-		b.ins = append(b.ins, in)            // 每一个实例放在上一个实例的后面
-		ends = append(ends, allWeight)       // 添加这个实例在线段的结束位置
+		allWeight += uint32(in.Weight()) // 累加权重
+		b.ins = append(b.ins, in)        // 每一个实例放在上一个实例的后面
+		ends = append(ends, allWeight)   // 添加这个实例在线段的结束位置
 	}
 
 	// 实例总数小于2不需要计算缓存
@@ -95,7 +86,7 @@ func (b *weightRandomBalancer) search(scores []uint32, score uint32) int {
 	return sort.Search(len(scores), func(i int) bool { return scores[i] > score })
 }
 
-func (b *weightRandomBalancer) Get(opt ...Option) (interface{}, error) {
+func (b *weightRandomBalancer) Get(opt ...Option) (Instance, error) {
 	b.mx.RLock()
 	defer b.mx.RUnlock()
 

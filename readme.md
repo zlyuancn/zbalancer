@@ -15,23 +15,28 @@
 
 ```go
 balancer, _ := zbalancer.NewBalancer(zbalancer.RoundBalancer) // 创建一个轮询平衡器
-balancer.Update([]interface{}{"nodeA", "nodeB", "nodeC"}) // 重设节点
+balancer.Update( // 重设节点
+    zbalancer.NewInstance("nodeA"),
+    zbalancer.NewInstance("nodeB"),
+    zbalancer.NewInstance("nodeC"),
+)
 
 node, _ := balancer.Get() // 获取节点
-fmt.Println(node)
+fmt.Println(node.Instance())
 ```
 
 ## 加权随机
 
 ```go
 balancer, _ := zbalancer.NewBalancer(zbalancer.WeightRandomBalancer) // 创建一个权重随机平衡器
-balancer.Update(
-[]interface{}{"nodeA", "nodeB", "nodeC"}, // 重设节点
-zbalancer.WithUpdateWeights([]uint8{1, 2, 3}), // 设置权重
+balancer.Update( // 重设节点
+    zbalancer.NewInstance("nodeA").SetWeight(1), // 设置权重
+    zbalancer.NewInstance("nodeB").SetWeight(2),
+    zbalancer.NewInstance("nodeC").SetWeight(3),
 )
 
 node, _ := balancer.Get() // 获取节点
-fmt.Println(node)
+fmt.Println(node.Instance())
 ```
 
 ## 加权hash
@@ -39,10 +44,11 @@ fmt.Println(node)
 ```go
 balancer, _ := zbalancer.NewBalancer(zbalancer.WeightHashBalancer) // 创建一个权重hash平衡器
 balancer.Update(
-[]interface{}{"nodeA", "nodeB", "nodeC"}, // 重设节点
-zbalancer.WithUpdateWeights([]uint8{1, 2, 3}), // 设置权重
+    zbalancer.NewInstance("nodeA").SetWeight(1), // 设置权重
+    zbalancer.NewInstance("nodeB").SetWeight(2),
+    zbalancer.NewInstance("nodeC").SetWeight(3),
 )
 
 node, _ := balancer.Get(zbalancer.WithKey([]byte("hello"))) // 根据key获取节点
-fmt.Println(node)
+fmt.Println(node.Instance())
 ```

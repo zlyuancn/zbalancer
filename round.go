@@ -15,7 +15,7 @@ import (
 
 type roundBalancer struct {
 	count uint32
-	ins   []interface{}
+	ins   []Instance
 	mx    sync.RWMutex
 }
 
@@ -23,13 +23,15 @@ func newRoundBalancer() Balancer {
 	return new(roundBalancer)
 }
 
-func (b *roundBalancer) Update(ins []interface{}, opt ...UpdateOption) {
+func (b *roundBalancer) Apply(opt ...BalancerOption) {}
+
+func (b *roundBalancer) Update(ins ...Instance) {
 	b.mx.Lock()
 	b.ins = ins
 	b.mx.Unlock()
 }
 
-func (b *roundBalancer) Get(opt ...Option) (interface{}, error) {
+func (b *roundBalancer) Get(opt ...Option) (Instance, error) {
 	b.mx.RLock()
 	defer b.mx.RUnlock()
 

@@ -15,21 +15,23 @@ import (
 
 var NoInstanceErr = errors.New("no instance")
 
-// 平衡器创建者
-type BalancerCreator func() Balancer
-
 // 平衡器
 type Balancer interface {
+	// 应用选项
+	Apply(opt ...BalancerOption)
 	// 更新
 	//
 	// 如果实例发生变动, 调用此方法以告知平衡机
-	Update(ins []interface{}, opt ...UpdateOption)
+	Update(ins ...Instance)
 	// 获取一个实例, 如果实例总数为0会返回NoInstanceErr
-	Get(opt ...Option) (interface{}, error)
+	Get(opt ...Option) (Instance, error)
 }
 
 // 平衡器类型
 type BalancerType string
+
+// 平衡器创建者
+type BalancerCreator func() Balancer
 
 const (
 	// 轮询

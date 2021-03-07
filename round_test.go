@@ -15,54 +15,75 @@ import (
 
 func Test_roundBalancer_Get(t *testing.T) {
 	test := struct {
-		ins   []interface{}
+		ins   []Instance
 		want  []interface{}
 		count int
 	}{
-		[]interface{}{1, 2, 3},
+		[]Instance{
+			NewInstance(1),
+			NewInstance(2),
+			NewInstance(3),
+		},
 		[]interface{}{1, 2, 3, 1, 2},
 		5,
 	}
 
 	b, _ := NewBalancer(RoundBalancer)
-	b.Update(test.ins)
+	b.Update(test.ins...)
 
 	for i := 0; i < test.count; i++ {
-		if got, _ := b.Get(); !reflect.DeepEqual(got, test.want[i]) {
-			t.Errorf("Get() = %v, want %v", got, test.want[i])
+		if got, _ := b.Get(); !reflect.DeepEqual(got.Instance(), test.want[i]) {
+			t.Errorf("Get() = %v, want %v", got.Instance(), test.want[i])
 		}
 	}
 }
 
 func Test_roundBalancer_Upset(t *testing.T) {
 	b, _ := NewBalancer(RoundBalancer)
-	b.Update([]interface{}{1, 2, 3, 4, 5})
+	b.Update(
+		NewInstance(1),
+		NewInstance(2),
+		NewInstance(3),
+		NewInstance(4),
+		NewInstance(5),
+	)
 
-	b.Get()
-	b.Get()
-	b.Get()
+	_, _ = b.Get()
+	_, _ = b.Get()
+	_, _ = b.Get()
 
 	test := struct {
-		ins   []interface{}
+		ins   []Instance
 		want  []interface{}
 		count int
 	}{
-		[]interface{}{1, 2, 4, 6},
+		[]Instance{
+			NewInstance(1),
+			NewInstance(2),
+			NewInstance(4),
+			NewInstance(6),
+		},
 		[]interface{}{6, 1, 2, 4, 6},
 		5,
 	}
-	b.Update(test.ins)
+	b.Update(test.ins...)
 
 	for i := 0; i < test.count; i++ {
-		if got, _ := b.Get(); !reflect.DeepEqual(got, test.want[i]) {
-			t.Errorf("Get() = %v, want %v", got, test.want[i])
+		if got, _ := b.Get(); !reflect.DeepEqual(got.Instance(), test.want[i]) {
+			t.Errorf("Get() = %v, want %v", got.Instance(), test.want[i])
 		}
 	}
 }
 
 func BenchmarkRoundBalancer_Get(b *testing.B) {
 	balancer, _ := NewBalancer(RoundBalancer)
-	balancer.Update([]interface{}{1, 2, 3, 4, 5})
+	balancer.Update(
+		NewInstance(1),
+		NewInstance(2),
+		NewInstance(3),
+		NewInstance(4),
+		NewInstance(5),
+	)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -72,7 +93,13 @@ func BenchmarkRoundBalancer_Get(b *testing.B) {
 
 func BenchmarkRoundBalancer_GetConcurrence(b *testing.B) {
 	balancer, _ := NewBalancer(RoundBalancer)
-	balancer.Update([]interface{}{1, 2, 3, 4, 5})
+	balancer.Update(
+		NewInstance(1),
+		NewInstance(2),
+		NewInstance(3),
+		NewInstance(4),
+		NewInstance(5),
+	)
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
