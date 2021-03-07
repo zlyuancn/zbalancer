@@ -10,6 +10,7 @@ package zbalancer
 
 import (
 	"errors"
+	"fmt"
 )
 
 var NoInstanceErr = errors.New("no instance")
@@ -47,6 +48,10 @@ var balancerCreators = map[BalancerType]BalancerCreator{
 
 // 注册平衡器创建者, 应该在 NewBalancer 之前调用
 func RegistryBalancerCreator(t BalancerType, creator BalancerCreator) {
+	_, ok := balancerCreators[t]
+	if ok {
+		panic(fmt.Errorf("creator of BalancerType<%v> is registered", t))
+	}
 	balancerCreators[t] = creator
 }
 
