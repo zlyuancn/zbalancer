@@ -65,11 +65,11 @@ func (b *weightRandomBalancer) Update(ins ...Instance) {
 	var score uint32
 	for i := uint32(0); i < cacheIndexSize; i++ {
 		// 生成随机数并计算分值
-		n := random.Int63()
+		n := random.Uint64()
 		if isPowerOfTwo {
-			score = uint32(n & int64(allWeight-1))
+			score = uint32(n & uint64(allWeight-1))
 		} else {
-			score = uint32(n % int64(allWeight))
+			score = uint32(n % uint64(allWeight))
 		}
 
 		// 根据分值搜索线段(实例)

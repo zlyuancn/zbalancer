@@ -14,13 +14,13 @@ type Instance interface {
 	// 获取实例名, 部分平衡器要求要有name, 否则会产生异常
 	Name() string
 	// 获取权重值, 部分平衡器根据权重值获取实例, 权重值为0的实例会被忽略
-	Weight() uint8
+	Weight() uint16
 }
 
 type instanceCli struct {
 	instance interface{}
 	name     string
-	weight   uint8
+	weight   uint16
 }
 
 func (i *instanceCli) Instance() interface{} {
@@ -31,7 +31,7 @@ func (i *instanceCli) Name() string {
 	return i.name
 }
 
-func (i *instanceCli) Weight() uint8 {
+func (i *instanceCli) Weight() uint16 {
 	return i.weight
 }
 
@@ -42,7 +42,7 @@ func (i *instanceCli) SetName(name string) *instanceCli {
 }
 
 // 设置权重
-func (i *instanceCli) SetWeight(weight uint8) *instanceCli {
+func (i *instanceCli) SetWeight(weight uint16) *instanceCli {
 	i.weight = weight
 	return i
 }
