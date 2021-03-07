@@ -1,12 +1,12 @@
 # 简单易懂的现代平衡器
 
-- [x] [RoundBalancer](./round.go) 轮询
+- [RoundBalancer](./round.go) 轮询
   > 按顺序获取实例.
-- [x] [WeightRandomBalancer](./weight_random.go) 加权随机
+- [WeightRandomBalancer](./weight_random.go) 加权随机
   > 每个实例有不同权重, 获取时随机选择一个实例, 权重越高被选取的机会越大.
-- [x] [WeightHashBalancer](./weight_hash.go) 加权hash
+- [WeightHashBalancer](./weight_hash.go) 加权hash
   > 每个实例有不同的权重, 获取时根据提供的key计算hash值然后对总权重求余, 余数计算所在实例, 权重越高被选取的机会越大.
-- [x] [WeightConsistentHashBalancer](./weight_consistent_hash.go)加权一致性hash环
+- [WeightConsistentHashBalancer](./weight_consistent_hash.go)加权一致性hash环
   > 每个实例有不同的权重, 权重值可以理解为每个实例的分片数, 每个分片计算hash值落在一个环上. 获取时根据提供的key计算hash值然后得出落在环的一个点上, 由这个点得出是哪个实例的分片进而知道是哪个实例.
 
 # 示例
