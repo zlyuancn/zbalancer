@@ -35,11 +35,14 @@ const (
 	RoundBalancer BalancerType = "round"
 	// 加权随机
 	WeightRandomBalancer BalancerType = "weight_random"
+	// 加权hash
+	WeightHashBalancer BalancerType = "weight_hash"
 )
 
 var balancerCreators = map[BalancerType]BalancerCreator{
 	RoundBalancer:        newRoundBalancer,
 	WeightRandomBalancer: newWeightRandomBalancer,
+	WeightHashBalancer:   newWeightHashBalancer,
 }
 
 // 注册平衡器创建者, 应该在 NewBalancer 之前调用

@@ -8,18 +8,38 @@
 
 package zbalancer
 
+import (
+	"hash/crc32"
+)
+
+// hash函数定义
+type HashFn func(data []byte) uint32
+
+// 更新选项
 type updateOptions struct {
 	Weights []uint8 // 权重, 权重值区间为0~255, 0表示永不使用
+	HashFn  HashFn
 }
 
+// 更新选项定义
 type UpdateOption func(opts *updateOptions)
 
 func newUpdateOptions() *updateOptions {
 	return &updateOptions{}
 }
 
+// 应用选项
+func (opts *updateOptions) Apply(opt ...UpdateOption) {
+	for _, o := range opt {
+		o(opts)
+	}
+	if opts.HashFn == nil {
+		opts.HashFn = crc32.ChecksumIEEE
+	}
+}
+
 // 构建默认权重, 默认值为1
-func (opts *updateOptions) makeDefaultWeight(count int, def ...uint8) {
+func (opts *updateOptions) MakeDefaultWeight(count int, def ...uint8) {
 	opts.Weights = make([]uint8, count)
 	for i := 0; i < count; i++ {
 		if i < len(def) {
@@ -43,11 +63,35 @@ func WithUpdateWeights(weights []uint8) UpdateOption {
 	}
 }
 
-type options struct {
+// 设置hash函数
+func WithUpdateHashFn(hashFn HashFn) UpdateOption {
+	return func(opts *updateOptions) {
+		opts.HashFn = hashFn
+	}
 }
 
+// 获取选项
+type options struct {
+	Key []byte
+}
+
+// 获取选项定义
 type Option func(opts *options)
 
 func newOptions() *options {
 	return &options{}
+}
+
+// 设置key
+func WithKey(key []byte) Option {
+	return func(opts *options) {
+		opts.Key = key
+	}
+}
+
+// 应用选项
+func (opts *options) Apply(opt ...Option) {
+	for _, o := range opt {
+		o(opts)
+	}
 }

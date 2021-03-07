@@ -1,7 +1,7 @@
 /*
 -------------------------------------------------
    Author :       zlyuancn
-   date：         2021/3/5
+   date：         2021/3/7
    Description :
 -------------------------------------------------
 */
@@ -10,28 +10,23 @@ package zbalancer
 
 import (
 	"errors"
-	"math/rand"
 	"sort"
 	"sync"
-	"time"
 )
 
-type weightRandomBalancer struct {
+type weightHashBalancer struct {
 	allWeight uint32
 	ins       []interface{}
 	scores    []uint32
-	mx        sync.Mutex
-	random    *rand.Rand
+	hashFn    HashFn
+	mx        sync.RWMutex
 }
 
-func newWeightRandomBalancer() Balancer {
-	random := rand.New(rand.NewSource(time.Now().Unix()))
-	return &weightRandomBalancer{
-		random: random,
-	}
+func newWeightHashBalancer() Balancer {
+	return new(weightHashBalancer)
 }
 
-func (b *weightRandomBalancer) Update(ins []interface{}, opt ...UpdateOption) {
+func (b *weightHashBalancer) Update(ins []interface{}, opt ...UpdateOption) {
 	b.mx.Lock()
 	defer b.mx.Unlock()
 
@@ -44,6 +39,7 @@ func (b *weightRandomBalancer) Update(ins []interface{}, opt ...UpdateOption) {
 		panic(errors.New("number of weights is inconsistent with the number of instances"))
 	}
 
+	b.hashFn = opts.HashFn
 	b.allWeight = 0
 	b.ins = make([]interface{}, 0, len(ins))
 	b.scores = make([]uint32, 0, len(ins))
@@ -58,13 +54,13 @@ func (b *weightRandomBalancer) Update(ins []interface{}, opt ...UpdateOption) {
 }
 
 // 二分搜索
-func (b *weightRandomBalancer) search(score uint32) int {
+func (b *weightHashBalancer) search(score uint32) int {
 	return sort.Search(len(b.scores), func(i int) bool { return b.scores[i] > score })
 }
 
-func (b *weightRandomBalancer) Get(opt ...Option) (interface{}, error) {
-	b.mx.Lock()
-	defer b.mx.Unlock()
+func (b *weightHashBalancer) Get(opt ...Option) (interface{}, error) {
+	b.mx.RLock()
+	defer b.mx.RUnlock()
 
 	l := len(b.ins)
 	if l == 0 {
@@ -74,8 +70,19 @@ func (b *weightRandomBalancer) Get(opt ...Option) (interface{}, error) {
 		return b.ins[0], nil
 	}
 
-	score := b.random.Int31n(int32(b.allWeight))
-	index := b.search(uint32(score))
+	opts := newOptions()
+	opts.Apply(opt...)
+
+	hashValue := b.hashFn(opts.Key)
+
+	var score uint32
+	if b.allWeight&(b.allWeight-1) == 0 {
+		score = hashValue & (b.allWeight - 1)
+	} else {
+		score = hashValue % b.allWeight
+	}
+
+	index := b.search(score)
 	if index == l { // 环尾
 		index = l - 1
 	}
