@@ -49,7 +49,7 @@ balancer.Update([]zbalancer.Instance{
     zbalancer.NewInstance("nodeC").SetWeight(3),
 })
 
-node, _ := balancer.Get(zbalancer.WithKey([]byte("hello"))) // 根据key获取节点
+node, _ := balancer.Get(zbalancer.WithGetKey([]byte("hello"))) // 根据key获取节点
 fmt.Println(node.Instance())
 ```
 
@@ -64,6 +64,6 @@ balancer.Update([]zbalancer.Instance{
     zbalancer.NewInstance("nodeC").SetName("nodeC").SetWeight(3),
 })
 
-node, _ := balancer.Get(zbalancer.WithKey([]byte("hello"))) // 根据key获取节点
+node, _ := balancer.Get(zbalancer.WithGetKey([]byte("hello"))) // 根据key获取节点
 fmt.Println(node.Instance())
 ```

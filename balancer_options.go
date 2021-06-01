@@ -1,11 +1,3 @@
-/*
--------------------------------------------------
-   Author :       zlyuancn
-   date：         2021/3/5
-   Description :
--------------------------------------------------
-*/
-
 package zbalancer
 
 import (
@@ -44,31 +36,5 @@ func (opts *balancerOptions) Apply(opt ...BalancerOption) {
 func WithBalancerHashFn(hashFn HashFn) BalancerOption {
 	return func(opts *balancerOptions) {
 		opts.HashFn = hashFn
-	}
-}
-
-// 获取选项
-type options struct {
-	Key []byte
-}
-
-// 获取选项定义
-type Option func(opts *options)
-
-func newOptions() *options {
-	return &options{}
-}
-
-// 应用选项
-func (opts *options) Apply(opt ...Option) {
-	for _, o := range opt {
-		o(opts)
-	}
-}
-
-// 设置key
-func WithKey(key []byte) Option {
-	return func(opts *options) {
-		opts.Key = key
 	}
 }

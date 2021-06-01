@@ -48,7 +48,7 @@ func Test_weightConsistentHashBalancer_Get(t *testing.T) {
 			const count = 10000000
 			result := make(map[string]int)
 			for i := 0; i < count; i++ {
-				in, _ := b.Get(WithKey([]byte(strconv.Itoa(i))))
+				in, _ := b.Get(WithGetKey([]byte(strconv.Itoa(i))))
 				result[in.Instance().(string)]++
 			}
 			t.Log(result)
