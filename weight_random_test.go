@@ -46,7 +46,7 @@ func Test_weightRandomBalancer_Get(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			b, _ := NewBalancer(WeightRandomBalancer)
-			b.Update(test.ins...)
+			b.Update(test.ins)
 
 			const count = 10000000
 			result := make(map[string]int)
@@ -72,13 +72,13 @@ func Test_weightRandomBalancer_Get(t *testing.T) {
 
 func BenchmarkWeightRandomBalancer_Get(b *testing.B) {
 	balancer, _ := NewBalancer(WeightRandomBalancer)
-	balancer.Update(
+	balancer.Update([]Instance{
 		NewInstance("A").SetWeight(3),
 		NewInstance("B").SetWeight(5),
 		NewInstance("C").SetWeight(4),
 		NewInstance("D").SetWeight(6),
 		NewInstance("E").SetWeight(2),
-	)
+	})
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -88,13 +88,13 @@ func BenchmarkWeightRandomBalancer_Get(b *testing.B) {
 
 func BenchmarkWeightRandomBalancer_GetConcurrence(b *testing.B) {
 	balancer, _ := NewBalancer(WeightRandomBalancer)
-	balancer.Update(
+	balancer.Update([]Instance{
 		NewInstance("A").SetWeight(3),
 		NewInstance("B").SetWeight(5),
 		NewInstance("C").SetWeight(4),
 		NewInstance("D").SetWeight(6),
 		NewInstance("E").SetWeight(2),
-	)
+	})
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {

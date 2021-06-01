@@ -36,14 +36,14 @@ func (b *weightHashBalancer) Apply(opt ...BalancerOption) {
 	b.mx.Unlock()
 }
 
-func (b *weightHashBalancer) Update(ins ...Instance) {
+func (b *weightHashBalancer) Update(instances []Instance) {
 	b.mx.Lock()
 	defer b.mx.Unlock()
 
 	b.allWeight = 0
-	b.ins = make([]Instance, 0, len(ins))
-	b.ends = make([]uint32, 0, len(ins))
-	for _, in := range ins {
+	b.ins = make([]Instance, 0, len(instances))
+	b.ends = make([]uint32, 0, len(instances))
+	for _, in := range instances {
 		if in.Weight() == 0 { // 权重为0忽略
 			continue
 		}

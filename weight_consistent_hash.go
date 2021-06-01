@@ -37,13 +37,13 @@ func (b *weightConsistentHashBalancer) Apply(opt ...BalancerOption) {
 	b.mx.Unlock()
 }
 
-func (b *weightConsistentHashBalancer) Update(ins ...Instance) {
+func (b *weightConsistentHashBalancer) Update(instances []Instance) {
 	b.mx.Lock()
 	defer b.mx.Unlock()
 
 	b.ends = make([]uint32, 0)
 	b.hashMap = make(map[uint32]Instance)
-	for _, in := range ins {
+	for _, in := range instances {
 		if in.Name() == "" {
 			panic(errors.New("instance name is empty"))
 		}

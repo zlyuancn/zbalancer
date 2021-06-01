@@ -43,7 +43,7 @@ func Test_weightConsistentHashBalancer_Get(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			b, _ := NewBalancer(WeightConsistentHashBalancer)
-			b.Update(test.ins...)
+			b.Update(test.ins)
 
 			const count = 10000000
 			result := make(map[string]int)
@@ -64,13 +64,13 @@ func Test_weightConsistentHashBalancer_Get(t *testing.T) {
 
 func BenchmarkWeightConsistentHashBalancer_Get(b *testing.B) {
 	balancer, _ := NewBalancer(WeightConsistentHashBalancer)
-	balancer.Update(
+	balancer.Update([]Instance{
 		NewInstance("A").SetName("A").SetWeight(3),
 		NewInstance("B").SetName("B").SetWeight(5),
 		NewInstance("C").SetName("C").SetWeight(4),
 		NewInstance("D").SetName("D").SetWeight(6),
 		NewInstance("E").SetName("E").SetWeight(2),
-	)
+	})
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -80,13 +80,13 @@ func BenchmarkWeightConsistentHashBalancer_Get(b *testing.B) {
 
 func BenchmarkWeightConsistentHashBalancer_GetConcurrence(b *testing.B) {
 	balancer, _ := NewBalancer(WeightConsistentHashBalancer)
-	balancer.Update(
+	balancer.Update([]Instance{
 		NewInstance("A").SetName("A").SetWeight(3),
 		NewInstance("B").SetName("B").SetWeight(5),
 		NewInstance("C").SetName("C").SetWeight(4),
 		NewInstance("D").SetName("D").SetWeight(6),
 		NewInstance("E").SetName("E").SetWeight(2),
-	)
+	})
 
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {

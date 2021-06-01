@@ -15,11 +15,11 @@
 
 ```go
 balancer, _ := zbalancer.NewBalancer(zbalancer.RoundBalancer) // 创建一个轮询平衡器
-balancer.Update( // 重设节点
+balancer.Update([]zbalancer.Instance{ // 重设节点
     zbalancer.NewInstance("nodeA"),
     zbalancer.NewInstance("nodeB"),
     zbalancer.NewInstance("nodeC"),
-)
+})
 
 node, _ := balancer.Get() // 获取节点
 fmt.Println(node.Instance())
@@ -29,11 +29,11 @@ fmt.Println(node.Instance())
 
 ```go
 balancer, _ := zbalancer.NewBalancer(zbalancer.WeightRandomBalancer) // 创建一个加权随机平衡器
-balancer.Update( // 重设节点
+balancer.Update([]zbalancer.Instance{ // 重设节点
     zbalancer.NewInstance("nodeA").SetWeight(1), // 设置权重
     zbalancer.NewInstance("nodeB").SetWeight(2),
     zbalancer.NewInstance("nodeC").SetWeight(3),
-)
+})
 
 node, _ := balancer.Get() // 获取节点
 fmt.Println(node.Instance())
@@ -43,11 +43,11 @@ fmt.Println(node.Instance())
 
 ```go
 balancer, _ := zbalancer.NewBalancer(zbalancer.WeightHashBalancer) // 创建一个加权hash平衡器
-balancer.Update(
+balancer.Update([]zbalancer.Instance{
     zbalancer.NewInstance("nodeA").SetWeight(1), // 设置权重
     zbalancer.NewInstance("nodeB").SetWeight(2),
     zbalancer.NewInstance("nodeC").SetWeight(3),
-)
+})
 
 node, _ := balancer.Get(zbalancer.WithKey([]byte("hello"))) // 根据key获取节点
 fmt.Println(node.Instance())
@@ -57,12 +57,12 @@ fmt.Println(node.Instance())
 
 ```go
 balancer, _ := zbalancer.NewBalancer(zbalancer.WeightConsistentHashBalancer) // 创建一个加权一致性hash平衡器
-balancer.Update(
+balancer.Update([]zbalancer.Instance{
     // 设置实例名和权重. 注意: 必须设置实例名, 且每个实例的实例名不能相同, 否则会导致异常
     zbalancer.NewInstance("nodeA").SetName("nodeA").SetWeight(1),
     zbalancer.NewInstance("nodeB").SetName("nodeB").SetWeight(2),
     zbalancer.NewInstance("nodeC").SetName("nodeC").SetWeight(3),
-)
+})
 
 node, _ := balancer.Get(zbalancer.WithKey([]byte("hello"))) // 根据key获取节点
 fmt.Println(node.Instance())

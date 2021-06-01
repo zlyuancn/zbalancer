@@ -22,7 +22,7 @@ type Balancer interface {
 	// 更新
 	//
 	// 如果实例发生变动, 调用此方法以告知平衡机
-	Update(ins ...Instance)
+	Update(instances []Instance)
 	// 获取一个实例, 如果实例总数为0会返回NoInstanceErr
 	Get(opt ...Option) (Instance, error)
 }

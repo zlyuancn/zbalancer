@@ -25,9 +25,9 @@ func newRoundBalancer() Balancer {
 
 func (b *roundBalancer) Apply(opt ...BalancerOption) {}
 
-func (b *roundBalancer) Update(ins ...Instance) {
+func (b *roundBalancer) Update(instances []Instance) {
 	b.mx.Lock()
-	b.ins = ins
+	b.ins = instances
 	b.mx.Unlock()
 }
 

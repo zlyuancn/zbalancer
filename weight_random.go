@@ -35,15 +35,15 @@ func newWeightRandomBalancer() Balancer {
 
 func (b *weightRandomBalancer) Apply(opt ...BalancerOption) {}
 
-func (b *weightRandomBalancer) Update(ins ...Instance) {
+func (b *weightRandomBalancer) Update(instances []Instance) {
 	b.mx.Lock()
 	defer b.mx.Unlock()
 
 	// 计算权重
 	var allWeight uint32
-	b.ins = make([]Instance, 0, len(ins))
-	ends := make([]uint32, 0, len(ins)) // 实例在线段的结束位置列表
-	for _, in := range ins {
+	b.ins = make([]Instance, 0, len(instances))
+	ends := make([]uint32, 0, len(instances)) // 实例在线段的结束位置列表
+	for _, in := range instances {
 		if in.Weight() == 0 { // 权重为0忽略
 			continue
 		}
