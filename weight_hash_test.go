@@ -99,14 +99,71 @@ func Test_weightHashBalancer_Target(t *testing.T) {
 	}
 }
 
+func Test_weightHashBalancer_demotion(t *testing.T) {
+	tests := []struct {
+		name          string
+		ins           []Instance
+		possibilities []float64
+	}{
+		{
+			"testA",
+			[]Instance{
+				NewInstance("A").SetWeight(300),
+				NewInstance("B").SetWeight(500),
+				NewInstance("C").SetWeight(400),
+				NewInstance("D").SetWeight(600),
+				NewInstance("E").SetWeight(200),
+			},
+			[]float64{0.15, 0.25, 0.2, 0.3, 0.1},
+		},
+		{
+			"testB",
+			[]Instance{
+				NewInstance("A"),
+				NewInstance("B"),
+				NewInstance("C"),
+				NewInstance("D"),
+				NewInstance("E"),
+			},
+			[]float64{0.2, 0.2, 0.2, 0.2, 0.2},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			b, _ := NewBalancer(WeightHashBalancer)
+			b.Update(test.ins)
+
+			const count = 10000000
+			result := make(map[string]int)
+			for i := 0; i < count; i++ {
+				in, _ := b.Get() // 不设置key迫使降级
+				result[in.Instance().(string)]++
+			}
+			t.Log(result)
+
+			for i := 0; i < len(test.ins); i++ {
+				name := test.ins[i].Instance().(string)
+				wantP := test.possibilities[i]
+				realP := float64(result[test.ins[i].Instance().(string)]) / float64(count)
+				errP := math.Abs((realP - wantP) / wantP)
+				t.Logf("The probability of %v is %.5f, and the error is %.5f", name, realP, errP)
+				if errP >= 0.01 {
+					t.Errorf("%v has a margin of error of more than 0.01", name)
+				}
+			}
+		})
+	}
+}
+
 func BenchmarkWeightHashBalancer_Get(b *testing.B) {
 	balancer, _ := NewBalancer(WeightHashBalancer)
 	balancer.Update([]Instance{
-		NewInstance("A").SetWeight(3),
-		NewInstance("B").SetWeight(5),
-		NewInstance("C").SetWeight(4),
-		NewInstance("D").SetWeight(6),
-		NewInstance("E").SetWeight(2),
+		NewInstance("A").SetWeight(300),
+		NewInstance("B").SetWeight(500),
+		NewInstance("C").SetWeight(400),
+		NewInstance("D").SetWeight(600),
+		NewInstance("E").SetWeight(200),
 	})
 
 	b.ResetTimer()
@@ -118,11 +175,11 @@ func BenchmarkWeightHashBalancer_Get(b *testing.B) {
 func BenchmarkWeightHashBalancer_GetConcurrence(b *testing.B) {
 	balancer, _ := NewBalancer(WeightHashBalancer)
 	balancer.Update([]Instance{
-		NewInstance("A").SetWeight(3),
-		NewInstance("B").SetWeight(5),
-		NewInstance("C").SetWeight(4),
-		NewInstance("D").SetWeight(6),
-		NewInstance("E").SetWeight(2),
+		NewInstance("A").SetWeight(300),
+		NewInstance("B").SetWeight(500),
+		NewInstance("C").SetWeight(400),
+		NewInstance("D").SetWeight(600),
+		NewInstance("E").SetWeight(200),
 	})
 
 	b.ResetTimer()

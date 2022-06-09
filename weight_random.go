@@ -26,7 +26,7 @@ type weightRandomBalancer struct {
 	target *targetSelector
 	mx     sync.RWMutex
 
-	count      uint32
+	incr       uint32   // 调用次数
 	cacheIndex []uint32 // 缓存的索引
 }
 
@@ -110,7 +110,7 @@ func (b *weightRandomBalancer) Get(opt ...Option) (Instance, error) {
 		return b.ins[0], nil
 	}
 
-	count := atomic.AddUint32(&b.count, 1)
+	count := atomic.AddUint32(&b.incr, 1)
 	cacheIndex := count & (cacheIndexMode)
 	return b.ins[b.cacheIndex[cacheIndex]], nil
 }

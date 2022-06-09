@@ -24,11 +24,11 @@ func Test_weightRandomBalancer_Get(t *testing.T) {
 		{
 			"testA",
 			[]Instance{
-				NewInstance("A").SetWeight(15),
-				NewInstance("B").SetWeight(25),
-				NewInstance("C").SetWeight(20),
-				NewInstance("D").SetWeight(30),
-				NewInstance("E").SetWeight(10),
+				NewInstance("A").SetWeight(150),
+				NewInstance("B").SetWeight(250),
+				NewInstance("C").SetWeight(200),
+				NewInstance("D").SetWeight(300),
+				NewInstance("E").SetWeight(100),
 			},
 			[]float64{0.15, 0.25, 0.2, 0.3, 0.1},
 		},
@@ -102,11 +102,11 @@ func Test_weightRandomBalancer_Target(t *testing.T) {
 func BenchmarkWeightRandomBalancer_Get(b *testing.B) {
 	balancer, _ := NewBalancer(WeightRandomBalancer)
 	balancer.Update([]Instance{
-		NewInstance("A").SetWeight(3),
-		NewInstance("B").SetWeight(5),
-		NewInstance("C").SetWeight(4),
-		NewInstance("D").SetWeight(6),
-		NewInstance("E").SetWeight(2),
+		NewInstance("A").SetWeight(300),
+		NewInstance("B").SetWeight(500),
+		NewInstance("C").SetWeight(400),
+		NewInstance("D").SetWeight(600),
+		NewInstance("E").SetWeight(200),
 	})
 
 	b.ResetTimer()
@@ -118,11 +118,11 @@ func BenchmarkWeightRandomBalancer_Get(b *testing.B) {
 func BenchmarkWeightRandomBalancer_GetConcurrence(b *testing.B) {
 	balancer, _ := NewBalancer(WeightRandomBalancer)
 	balancer.Update([]Instance{
-		NewInstance("A").SetWeight(3),
-		NewInstance("B").SetWeight(5),
-		NewInstance("C").SetWeight(4),
-		NewInstance("D").SetWeight(6),
-		NewInstance("E").SetWeight(2),
+		NewInstance("A").SetWeight(300),
+		NewInstance("B").SetWeight(500),
+		NewInstance("C").SetWeight(400),
+		NewInstance("D").SetWeight(600),
+		NewInstance("E").SetWeight(200),
 	})
 
 	b.ResetTimer()

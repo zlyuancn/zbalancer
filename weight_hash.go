@@ -10,13 +10,16 @@ package zbalancer
 
 import (
 	"sort"
+	"strconv"
 	"sync"
+	"sync/atomic"
 )
 
 type weightHashBalancer struct {
+	incr      uint32 // 调用次数
 	allWeight uint32
 	ins       []Instance
-	target *targetSelector
+	target    *targetSelector
 	ends      []uint32 //  实例在线段的结束位置列表
 	hashFn    HashFn
 	mx        sync.RWMutex
@@ -78,6 +81,11 @@ func (b *weightHashBalancer) Get(opt ...Option) (Instance, error) {
 	}
 	if l == 1 {
 		return b.ins[0], nil
+	}
+
+	if len(opts.HashKey) == 0 {
+		incr := atomic.AddUint32(&b.incr, 1)
+		opts.HashKey = []byte(strconv.Itoa(int(incr)))
 	}
 
 	hashValue := b.hashFn(opts.HashKey)

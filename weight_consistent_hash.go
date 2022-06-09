@@ -12,10 +12,13 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"sync"
+	"sync/atomic"
 )
 
 type weightConsistentHashBalancer struct {
+	incr    uint32 // 调用次数
 	ends    []uint32
 	target  *targetSelector
 	hashMap map[uint32]Instance
@@ -85,6 +88,11 @@ func (b *weightConsistentHashBalancer) Get(opt ...Option) (Instance, error) {
 
 	if len(b.hashMap) == 0 {
 		return nil, NoInstanceErr
+	}
+
+	if len(opts.HashKey) == 0 {
+		incr := atomic.AddUint32(&b.incr, 1)
+		opts.HashKey = []byte(strconv.Itoa(int(incr)))
 	}
 
 	hashValue := b.hashFn(opts.HashKey)
