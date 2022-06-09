@@ -9,6 +9,7 @@
 package zbalancer
 
 import (
+	"reflect"
 	"strconv"
 	"testing"
 )
@@ -59,6 +60,33 @@ func Test_weightConsistentHashBalancer_Get(t *testing.T) {
 				t.Logf("The probability of %v is %.5f", name, p)
 			}
 		})
+	}
+}
+
+func Test_weightConsistentHashBalancer_Target(t *testing.T) {
+	test := struct {
+		ins    []Instance
+		target []string
+		want   []interface{}
+		count  int
+	}{
+		[]Instance{
+			NewInstance(1).SetName(strconv.Itoa(1)),
+			NewInstance(2).SetName(strconv.Itoa(2)),
+			NewInstance(3).SetName(strconv.Itoa(3)),
+		},
+		[]string{"3", "1", "2", "2", "1", "3"},
+		[]interface{}{3, 1, 2, 2, 1, 3},
+		3,
+	}
+
+	b, _ := NewBalancer(WeightConsistentHashBalancer)
+	b.Update(test.ins)
+
+	for i := 0; i < test.count; i++ {
+		if got, _ := b.Get(WithTarget(test.target[i])); !reflect.DeepEqual(got.Instance(), test.want[i]) {
+			t.Errorf("Get() = %v, want %v", got.Instance(), test.want[i])
+		}
 	}
 }
 

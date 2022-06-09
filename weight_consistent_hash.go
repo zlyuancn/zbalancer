@@ -17,6 +17,7 @@ import (
 
 type weightConsistentHashBalancer struct {
 	ends    []uint32
+	target  *targetSelector
 	hashMap map[uint32]Instance
 	hashFn  HashFn
 	mx      sync.RWMutex
@@ -25,6 +26,7 @@ type weightConsistentHashBalancer struct {
 func newWeightConsistentHashBalancer() Balancer {
 	return &weightConsistentHashBalancer{
 		hashFn: DefaultHashFn,
+		target: newTargetSelector(),
 	}
 }
 
@@ -42,6 +44,7 @@ func (b *weightConsistentHashBalancer) Update(instances []Instance) {
 	defer b.mx.Unlock()
 
 	b.ends = make([]uint32, 0)
+	b.target.Update(instances)
 	b.hashMap = make(map[uint32]Instance)
 	for _, in := range instances {
 		if in.Name() == "" {
@@ -73,14 +76,18 @@ func (b *weightConsistentHashBalancer) Get(opt ...Option) (Instance, error) {
 	b.mx.RLock()
 	defer b.mx.RUnlock()
 
+	opts := newOptions()
+	opts.Apply(opt...)
+
+	if opts.Target != "" {
+		return b.target.Get(opts.Target)
+	}
+
 	if len(b.hashMap) == 0 {
 		return nil, NoInstanceErr
 	}
 
-	opts := newOptions()
-	opts.Apply(opt...)
-
-	hashValue := b.hashFn(opts.Key)
+	hashValue := b.hashFn(opts.HashKey)
 	endIndex := b.search(hashValue)
 	if endIndex == len(b.ends) { // 环尾
 		endIndex = 0

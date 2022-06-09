@@ -10,7 +10,8 @@ package zbalancer
 
 // 获取选项
 type getOptions struct {
-	Key []byte
+	HashKey []byte
+	Target  string
 }
 
 // 获取选项定义
@@ -27,9 +28,16 @@ func (opts *getOptions) Apply(opt ...Option) {
 	}
 }
 
+// 指定目标
+func WithTarget(name string) Option {
+	return func(opts *getOptions) {
+		opts.Target = name
+	}
+}
+
 // 设置key
 func WithHashKey(key string) Option {
 	return func(opts *getOptions) {
-		opts.Key = []byte(key)
+		opts.HashKey = []byte(key)
 	}
 }

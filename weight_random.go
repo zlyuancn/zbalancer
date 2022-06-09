@@ -22,15 +22,18 @@ const (
 )
 
 type weightRandomBalancer struct {
-	ins []Instance
-	mx  sync.RWMutex
+	ins    []Instance
+	target *targetSelector
+	mx     sync.RWMutex
 
 	count      uint32
 	cacheIndex []uint32 // 缓存的索引
 }
 
 func newWeightRandomBalancer() Balancer {
-	return new(weightRandomBalancer)
+	return &weightRandomBalancer{
+		target: newTargetSelector(),
+	}
 }
 
 func (b *weightRandomBalancer) Apply(opt ...BalancerOption) {}
@@ -38,6 +41,8 @@ func (b *weightRandomBalancer) Apply(opt ...BalancerOption) {}
 func (b *weightRandomBalancer) Update(instances []Instance) {
 	b.mx.Lock()
 	defer b.mx.Unlock()
+
+	b.target.Update(instances)
 
 	// 计算权重
 	var allWeight uint32
@@ -89,6 +94,13 @@ func (b *weightRandomBalancer) search(scores []uint32, score uint32) int {
 func (b *weightRandomBalancer) Get(opt ...Option) (Instance, error) {
 	b.mx.RLock()
 	defer b.mx.RUnlock()
+
+	opts := newOptions()
+	opts.Apply(opt...)
+
+	if opts.Target != "" {
+		return b.target.Get(opts.Target)
+	}
 
 	l := len(b.ins)
 	if l == 0 {

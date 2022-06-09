@@ -16,6 +16,7 @@ import (
 type weightHashBalancer struct {
 	allWeight uint32
 	ins       []Instance
+	target *targetSelector
 	ends      []uint32 //  实例在线段的结束位置列表
 	hashFn    HashFn
 	mx        sync.RWMutex
@@ -23,6 +24,7 @@ type weightHashBalancer struct {
 
 func newWeightHashBalancer() Balancer {
 	return &weightHashBalancer{
+		target: newTargetSelector(),
 		hashFn: DefaultHashFn,
 	}
 }
@@ -40,6 +42,7 @@ func (b *weightHashBalancer) Update(instances []Instance) {
 	b.mx.Lock()
 	defer b.mx.Unlock()
 
+	b.target.Update(instances)
 	b.allWeight = 0
 	b.ins = make([]Instance, 0, len(instances))
 	b.ends = make([]uint32, 0, len(instances))
@@ -62,6 +65,13 @@ func (b *weightHashBalancer) Get(opt ...Option) (Instance, error) {
 	b.mx.RLock()
 	defer b.mx.RUnlock()
 
+	opts := newOptions()
+	opts.Apply(opt...)
+
+	if opts.Target != "" {
+		return b.target.Get(opts.Target)
+	}
+
 	l := len(b.ins)
 	if l == 0 {
 		return nil, NoInstanceErr
@@ -70,10 +80,7 @@ func (b *weightHashBalancer) Get(opt ...Option) (Instance, error) {
 		return b.ins[0], nil
 	}
 
-	opts := newOptions()
-	opts.Apply(opt...)
-
-	hashValue := b.hashFn(opts.Key)
+	hashValue := b.hashFn(opts.HashKey)
 
 	var score uint32
 	if b.allWeight&(b.allWeight-1) == 0 {

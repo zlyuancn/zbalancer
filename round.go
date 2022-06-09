@@ -14,26 +14,38 @@ import (
 )
 
 type roundBalancer struct {
-	count uint32
-	ins   []Instance
-	mx    sync.RWMutex
+	incr   uint32 // 调用次数
+	ins    []Instance
+	target *targetSelector
+	mx     sync.RWMutex
 }
 
 func newRoundBalancer() Balancer {
-	return new(roundBalancer)
+	return &roundBalancer{
+		target: newTargetSelector(),
+	}
 }
 
 func (b *roundBalancer) Apply(opt ...BalancerOption) {}
 
 func (b *roundBalancer) Update(instances []Instance) {
 	b.mx.Lock()
+	b.incr = 0
 	b.ins = instances
+	b.target.Update(instances)
 	b.mx.Unlock()
 }
 
 func (b *roundBalancer) Get(opt ...Option) (Instance, error) {
 	b.mx.RLock()
 	defer b.mx.RUnlock()
+
+	opts := newOptions()
+	opts.Apply(opt...)
+
+	if opts.Target != "" {
+		return b.target.Get(opts.Target)
+	}
 
 	l := len(b.ins)
 	if l == 0 {
@@ -43,7 +55,7 @@ func (b *roundBalancer) Get(opt ...Option) (Instance, error) {
 		return b.ins[0], nil
 	}
 
-	count := atomic.AddUint32(&b.count, 1) - 1
+	count := atomic.AddUint32(&b.incr, 1) - 1
 	var index int
 	if l&(l-1) == 0 {
 		index = int(count) & (l - 1)
