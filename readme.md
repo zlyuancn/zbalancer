@@ -24,6 +24,7 @@ balancer.Update([]zbalancer.Instance{ // 重设节点
 })
 
 node, _ := balancer.Get() // 获取节点
+node, _ = balancer.Get(zbalancer.WithTarget("nodeB")) // 根据key获取指定节点
 fmt.Println(node.Instance())
 ```
 
@@ -38,6 +39,7 @@ balancer.Update([]zbalancer.Instance{ // 重设节点
 })
 
 node, _ := balancer.Get() // 获取节点
+node, _ = balancer.Get(zbalancer.WithTarget("nodeB")) // 根据key获取指定节点
 fmt.Println(node.Instance())
 ```
 
@@ -52,6 +54,7 @@ balancer.Update([]zbalancer.Instance{
 })
 
 node, _ := balancer.Get(zbalancer.WithHashKey("hello")) // 根据key获取节点
+node, _ = balancer.Get(zbalancer.WithTarget("nodeB")) // 根据key获取指定节点
 fmt.Println(node.Instance())
 ```
 
@@ -67,5 +70,6 @@ balancer.Update([]zbalancer.Instance{
 })
 
 node, _ := balancer.Get(zbalancer.WithHashKey("hello")) // 根据key获取节点
+node, _ = balancer.Get(zbalancer.WithTarget("nodeB")) // 根据key获取指定节点
 fmt.Println(node.Instance())
 ```
