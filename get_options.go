@@ -28,8 +28,8 @@ func (opts *getOptions) Apply(opt ...Option) {
 }
 
 // 设置key
-func WithGetKey(key []byte) Option {
+func WithHashKey(key string) Option {
 	return func(opts *getOptions) {
-		opts.Key = key
+		opts.Key = []byte(key)
 	}
 }
